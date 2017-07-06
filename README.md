@@ -2,6 +2,11 @@
 plugin for serverless to make buckets empty before remove
 
 # Usage
+Run next command.
+```bash
+$ npm install serverless-s3-remover
+```
+
 Add to your serverless.yml
 ```yaml
 plugins:
