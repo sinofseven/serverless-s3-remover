@@ -31,15 +31,9 @@ class Remover {
     };
 
     this.hooks = {
-      'before:remove': () => Promise.resolve().then(this.test.bind(this))
+      'before:remove:remove': () => Promise.resolve().then(this.remove.bind(this)),
+      's3remove:remove': () => Promise.resolve().then(this.remove.bind(this))
     };
-  }
-
-  test() {
-    return new Promise((resolve) => {
-      this.log("================ call ==================");
-      resolve();
-    })
   }
 
   log(message) {
@@ -50,13 +44,56 @@ class Remover {
 
   remove() {
     const service = this.serverless.service;
-    let buckets = this.config.targes;
+    const buckets = this.config.buckets;
 
-    return new Promise((resolve) => {
-      buckets.forEach((bucket) => {
-        this.provider.request('S3', '')
+    const getAllKeys = (bucket) => {
+      const get = (src = {}) => {
+        const data = src.data;
+        const keys = src.keys || [];
+        const param = {
+          Bucket: bucket
+        };
+        if (data) {
+          param.ContinuationToken = data.NextContinuationToken;
+        }
+        return this.provider.request('S3', 'listObjectsV2', param, this.options.stage, this.options.region).then((result) => {
+          return new Promise((resolve) => {
+            resolve({data: result, keys: keys.concat(result.Contents.map((item) => {return item.Key;}))});
+          })
+        });
+      };
+      const list = (src = {}) => {
+        return get(src).then((result) => {
+          if (result.data.IsTruncated) {
+            return list(result);
+          } else {
+            const keys = result.keys;
+            const objects = keys.map((item) => {return {Key: item};});
+            const param = {
+              Bucket: bucket,
+              Delete: {
+                Objects: objects
+              }
+            }
+            return new Promise((resolve) => { resolve(param); });
+          }
+        });
+      };
+      return list();
+    };
+    const executeRemove = (param) => {
+      return this.provider.request('S3', 'deleteObjects', param, this.options.stage, this.options.region);
+    }
+    this.log("make buckets empty");
+    for(const bucket of buckets) {
+      getAllKeys(bucket).then(executeRemove).then(() => {
+        this.log(`success: ${bucket} is empty.`);
+      }).catch(() => {
+        this.log(`faild: ${bucket} may not be empty.`);
       });
-    });
+    }
+
+
   }
 }
 
