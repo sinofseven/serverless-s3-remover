@@ -24,5 +24,5 @@ $ sls s3remove
 # When removing
 When removing serverless stack, this plugin automatically make buckets empty  before removing stack.
 ```sh
-$ shs remove
+$ sls remove
 ```
