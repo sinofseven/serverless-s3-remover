@@ -1,5 +1,8 @@
 'use strict';
 
+const chalk = require('chalk');
+const messagePrefix = 'S3 Remover: ';
+
 class Remover {
   constructor (serverless, options) {
     this.serverless = serverless;
@@ -17,14 +20,14 @@ class Remover {
 
     this.commands = {
       s3remove: {
-        usage: "remove all files in S3 buckets",
+        usage: 'Remove all files in S3 buckets',
         lifecycleEvents: [
           'remove'
         ],
         options: {
           verbose: {
-            usage: "Increase verbosity",
-            shortcut: "v"
+            usage: 'Increase verbosity',
+            shortcut: 'v'
           }
         }
       }
@@ -43,7 +46,6 @@ class Remover {
   }
 
   remove() {
-    const service = this.serverless.service;
     const buckets = this.config.buckets;
 
     const getAllKeys = (bucket) => {
@@ -59,7 +61,7 @@ class Remover {
         return this.provider.request('S3', 'listObjectsV2', param, this.options.stage, this.options.region).then((result) => {
           return new Promise((resolve) => {
             resolve({data: result, keys: keys.concat(result.Contents.map((item) => {return item.Key;}))});
-          })
+          });
         });
       };
       const list = (src = {}) => {
@@ -74,7 +76,7 @@ class Remover {
               Delete: {
                 Objects: objects
               }
-            }
+            };
             return new Promise((resolve) => { resolve(param); });
           }
         });
@@ -83,17 +85,21 @@ class Remover {
     };
     const executeRemove = (param) => {
       return this.provider.request('S3', 'deleteObjects', param, this.options.stage, this.options.region);
-    }
-    this.log("make buckets empty");
+    };
+    const startMessage = 'Make buckets empty.';
+    this.log(startMessage);
+    this.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(startMessage)}`);
     for(const bucket of buckets) {
       getAllKeys(bucket).then(executeRemove).then(() => {
-        this.log(`success: ${bucket} is empty.`);
+        const message = `Success: ${bucket} is empty.`;
+        this.log(message);
+        this.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
       }).catch(() => {
-        this.log(`faild: ${bucket} may not be empty.`);
+        const message = `Faild: ${bucket} may not be empty.`;
+        this.log(message);
+        this.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
       });
     }
-
-
   }
 }
 
