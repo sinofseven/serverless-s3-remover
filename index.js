@@ -1,5 +1,8 @@
 'use strict';
 
+const chalk = require('chalk');
+const messagePrefix = 'S3 Remover: ';
+
 class Remover {
   constructor (serverless, options) {
     this.serverless = serverless;
@@ -83,12 +86,18 @@ class Remover {
     const executeRemove = (param) => {
       return this.provider.request('S3', 'deleteObjects', param, this.options.stage, this.options.region);
     };
-    this.log('Make buckets empty.');
+    const startMessage = 'Make buckets empty.';
+    this.log(startMessage);
+    this.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(startMessage)}`);
     for(const bucket of buckets) {
       getAllKeys(bucket).then(executeRemove).then(() => {
-        this.log(`Success: ${bucket} is empty.`);
+        const message = `Success: ${bucket} is empty.`;
+        this.log(message);
+        this.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
       }).catch(() => {
-        this.log(`Faild: ${bucket} may not be empty.`);
+        const message = `Faild: ${bucket} may not be empty.`;
+        this.log(message);
+        this.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
       });
     }
   }

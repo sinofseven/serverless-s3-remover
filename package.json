@@ -4,5 +4,8 @@
   "main": "index.js",
   "repository": "git@github.com:sinofseven/serverless-s3-remover.git",
   "author": "sinofseven(workspace) <luciferous.development@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^2.1.0"
+  }
 }
