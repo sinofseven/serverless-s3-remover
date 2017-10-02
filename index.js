@@ -10,11 +10,7 @@ class Remover {
     this.provider =  this.serverless.getProvider('aws');
 
     let config = this.serverless.service.custom.remover;
-    if (Array.isArray(config)){
-      config = {buckets: config};
-    }
     this.config = Object.assign({}, {
-      auto: false,
       buckets: []
     }, config);
 
