@@ -1,6 +1,7 @@
 'use strict';
 
 const chalk = require('chalk');
+const prompt = require('prompt');
 const messagePrefix = 'S3 Remover: ';
 
 class Remover {
@@ -11,6 +12,7 @@ class Remover {
 
     let config = this.serverless.service.custom.remover;
     this.config = Object.assign({}, {
+      prompt: false,
       buckets: []
     }, config);
 
@@ -42,7 +44,8 @@ class Remover {
   }
 
   remove() {
-    const buckets = this.config.buckets;
+    const self = this;
+    const buckets = self.config.buckets;
 
     const getAllKeys = (bucket) => {
       const get = (src = {}) => {
@@ -54,7 +57,7 @@ class Remover {
         if (data) {
           param.ContinuationToken = data.NextContinuationToken;
         }
-        return this.provider.request('S3', 'listObjectsV2', param, this.options.stage, this.options.region).then((result) => {
+        return self.provider.request('S3', 'listObjectsV2', param, self.options.stage, self.options.region).then((result) => {
           return new Promise((resolve) => {
             resolve({data: result, keys: keys.concat(result.Contents.map((item) => {return item.Key;}))});
           });
@@ -80,22 +83,61 @@ class Remover {
       return list();
     };
     const executeRemove = (param) => {
-      return this.provider.request('S3', 'deleteObjects', param, this.options.stage, this.options.region);
+      return self.provider.request('S3', 'deleteObjects', param, self.options.stage, self.options.region);
     };
-    const startMessage = 'Make buckets empty.';
-    this.log(startMessage);
-    this.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(startMessage)}`);
-    for(const bucket of buckets) {
-      getAllKeys(bucket).then(executeRemove).then(() => {
-        const message = `Success: ${bucket} is empty.`;
-        this.log(message);
-        this.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
-      }).catch(() => {
-        const message = `Faild: ${bucket} may not be empty.`;
-        this.log(message);
-        this.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
+
+    return new Promise((resolve) => {
+      if (!self.config.prompt) {
+        let promisses = [];
+        for (const b of buckets) {
+          promisses.push(getAllKeys(b).then(executeRemove).then(() => {
+            const message = `Success: ${b} is empty.`;
+            self.log(message);
+            self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
+          }).catch(() => {
+            const message = `Faild: ${b} may not be empty.`;
+            self.log(message);
+            self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
+          }));
+        }
+        return Promise.all(promisses).then(resolve);
+      }
+      prompt.message = messagePrefix;
+      prompt.delimiter = '';
+      prompt.start();
+      const schema = {properties: {}};
+      buckets.forEach((b) => {
+        schema.properties[b] = {
+          message: `Make ${b} empty. Are you sure? [yes/no]:`,
+          validator: /(yes|no)/,
+          required: true,
+          warning: 'Must respond yes or no'
+        };
       });
-    }
+      prompt.get(schema, (err, result) => {
+        let promisses = [];
+        for (const b of buckets) {
+          if (result[b].match(/^y/)) {
+            promisses.push(getAllKeys(b).then(executeRemove).then(() => {
+              const message = `Success: ${b} is empty.`;
+              self.log(message);
+              self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
+            }).catch(() => {
+              const message = `Faild: ${b} may not be empty.`;
+              self.log(message);
+              self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
+            }));
+          } else {
+            promisses.push(Promise.resolve().then(() => {
+              const message = `Remove cancelled: ${b}`;
+              self.log(message);
+              self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
+            }));
+          }
+        }
+        Promise.all(promisses).then(resolve);
+      });
+    });
   }
 }
 
