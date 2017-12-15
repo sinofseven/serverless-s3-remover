@@ -33,3 +33,17 @@ When removing serverless stack, this plugin automatically make buckets empty  be
 ```sh
 $ sls remove
 ```
+
+# Using Prompt
+You can use prompt before deleting bucket.
+
+```yaml
+custom:
+  remover:
+    prompt: true # default value is `false`
+    buckets:
+      - remover-bucket-a
+      - remover-bucket-b
+```
+
+![terminal.png](https://user-images.githubusercontent.com/57114/31264298-0896f1ec-aaa3-11e7-9a8e-86e3c3f34e23.png)
