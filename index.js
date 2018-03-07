@@ -95,7 +95,7 @@ class Remover {
             self.log(message);
             self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
           }).catch(() => {
-            const message = `Faild: ${b} may not be empty.`;
+            const message = `Failed: ${b} may not be empty.`;
             self.log(message);
             self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
           }));
@@ -123,7 +123,7 @@ class Remover {
               self.log(message);
               self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
             }).catch(() => {
-              const message = `Faild: ${b} may not be empty.`;
+              const message = `Failed: ${b} may not be empty.`;
               self.log(message);
               self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
             }));
