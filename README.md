@@ -47,3 +47,15 @@ custom:
 ```
 
 ![terminal.png](https://user-images.githubusercontent.com/57114/31264298-0896f1ec-aaa3-11e7-9a8e-86e3c3f34e23.png)
+
+# Populating the configuration object before using it
+```yaml
+custom:
+  boolean:
+    true: true
+    false: false
+  remover:
+    prompt: ${self:custom.boolean.${opt:s3-remover-prompt, 'true'}}
+```
+
+ I can use the command line argument ```--s3-remover-prompt false``` to disable the prompt feature.
