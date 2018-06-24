@@ -1,6 +1,6 @@
 {
   "name": "serverless-s3-remover",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "main": "index.js",
   "repository": "git@github.com:sinofseven/serverless-s3-remover.git",
   "author": "sinofseven(workspace) <luciferous.development@gmail.com>",
