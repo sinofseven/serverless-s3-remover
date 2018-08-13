@@ -5,10 +5,10 @@ const prompt = require('prompt');
 const messagePrefix = 'S3 Remover: ';
 
 class Remover {
-  constructor (serverless, options) {
+  constructor(serverless, options) {
     this.serverless = serverless;
     this.options = options;
-    this.provider =  this.serverless.getProvider('aws');
+    this.provider = this.serverless.getProvider('aws');
 
     this.commands = {
       s3remove: {
@@ -50,9 +50,13 @@ class Remover {
         if (data) {
           param.ContinuationToken = data.NextContinuationToken;
         }
-        return self.provider.request('S3', 'listObjectsV2', param, self.options.stage, self.options.region).then((result) => {
+        return self.provider.request('S3', 'listObjectsV2', param).then((result) => {
           return new Promise((resolve) => {
-            resolve({data: result, keys: keys.concat(result.Contents.map((item) => {return item.Key;}))});
+            resolve({
+              data: result, keys: keys.concat(result.Contents.map((item) => {
+                return item.Key;
+              }))
+            });
           });
         });
       };
@@ -62,21 +66,30 @@ class Remover {
             return list(result);
           } else {
             const keys = result.keys;
-            const objects = keys.map((item) => {return {Key: item};});
-            const param = {
-              Bucket: bucket,
-              Delete: {
-                Objects: objects
-              }
-            };
-            return new Promise((resolve) => { resolve(param); });
+            const batched = [];
+            for (let i = 0; i < keys.length; i += 1000) {
+              const objects = keys.slice(i, i + 1000).map((item) => {
+                return {Key: item};
+              });
+              batched.push({
+                Bucket: bucket,
+                Delete: {
+                  Objects: objects
+                }
+              });
+            }
+            return new Promise((resolve) => {
+              resolve(batched);
+            });
           }
         });
       };
       return list();
     };
-    const executeRemove = (param) => {
-      return self.provider.request('S3', 'deleteObjects', param, self.options.stage, self.options.region);
+    const executeRemove = (params) => {
+      return Promise.all(params.map(param => {
+        return self.provider.request('S3', 'deleteObjects', param);
+      }));
     };
 
     const populateConfig = () => {
@@ -99,9 +112,10 @@ class Remover {
               const message = `Success: ${b} is empty.`;
               self.log(message);
               self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
-            }).catch(() => {
+            }).catch((err) => {
               const message = `Faild: ${b} may not be empty.`;
               self.log(message);
+              self.log(err);
               self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
             }));
           }
