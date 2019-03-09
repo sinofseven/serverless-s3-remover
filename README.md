@@ -1,7 +1,7 @@
 [![NPM](https://nodei.co/npm/serverless-s3-remover.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/serverless-s3-remover/)
 [![NPM](https://nodei.co/npm-dl/serverless-s3-remover.png?height=2)](https://nodei.co/npm/serverless-s3-remover/)
 # serverless-s3-remover
-plugin for serverless to make buckets empty before remove
+plugin for serverless to empty S3 buckets before stack removal
 
 # Usage
 Run next command.
@@ -9,7 +9,7 @@ Run next command.
 $ npm install serverless-s3-remover
 ```
 
-Add to your serverless.yml
+Add the following to your serverless.yml:
 ```yaml
 plugins:
   - serverless-s3-remover
@@ -21,21 +21,21 @@ custom:
        - my-bucket-2
 ```
 
-You can specify any number of `bucket`s that you want.
+You can specify any number of S3 `bucket`s that you want.
 
-Now you can make all buckets empty by running:
+Now you can empty all S3 buckets by running:
 ```bash
 $ sls s3remove
 ```
 
 # When removing
-When removing serverless stack, this plugin automatically make buckets empty  before removing stack.
+This plugin automatically empties S3 buckets before removing the serverless stack.
 ```sh
 $ sls remove
 ```
 
 # Using Prompt
-You can use prompt before deleting bucket.
+You can use prompt before deleting any S3 buckets.
 
 ```yaml
 custom:
@@ -58,4 +58,4 @@ custom:
     prompt: ${self:custom.boolean.${opt:s3-remover-prompt, 'true'}}
 ```
 
- I can use the command line argument ```--s3-remover-prompt false``` to disable the prompt feature.
+ Please use the command line argument ```--s3-remover-prompt false``` to disable the prompt feature.

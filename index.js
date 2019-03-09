@@ -12,7 +12,7 @@ class Remover {
 
     this.commands = {
       s3remove: {
-        usage: 'Remove all files in S3 buckets',
+        usage: 'Remove all objects in S3 buckets',
         lifecycleEvents: [
           'remove'
         ],
@@ -113,7 +113,7 @@ class Remover {
               self.log(message);
               self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
             }).catch((err) => {
-              const message = `Faild: ${b} may not be empty.`;
+              const message = `Failed: ${b} may not be empty.`;
               self.log(message);
               self.log(err);
               self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
@@ -130,7 +130,7 @@ class Remover {
             message: `Make ${b} empty. Are you sure? [yes/no]:`,
             validator: /(yes|no)/,
             required: true,
-            warning: 'Must respond yes or no'
+            warning: 'Please respond with \'yes\' or \'no\'.'
           };
         });
         prompt.get(schema, (err, result) => {
@@ -142,7 +142,7 @@ class Remover {
                 self.log(message);
                 self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
               }).catch(() => {
-                const message = `Faild: ${b} may not be empty.`;
+                const message = `Failed: ${b} may not be empty.`;
                 self.log(message);
                 self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
               }));
