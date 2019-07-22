@@ -108,10 +108,19 @@ class Remover {
         if (!config.prompt) {
           let promisses = [];
           for (const b of config.buckets) {
-            promisses.push(getAllKeys(b).then(executeRemove).then(() => {
-              const message = `Success: ${b} is empty.`;
-              self.log(message);
-              self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
+            promisses.push(getAllKeys(b).then(executeRemove).then((results) => {
+              const errors = []
+              results.forEach((result) => { errors.push(...result.Errors); });
+              if (errors.length === 0) {
+                const message = `Success: ${b} is empty.`;
+                self.log(message);
+                self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
+              } else {
+                const message = `Failed: ${b} may not be empty.`;
+                self.log(message);
+                self.log(JSON.stringify(errors));
+                self.serverless.cli.consoleLog(`${messagePrefix}${chalk.yellow(message)}`);
+              }
             }).catch((err) => {
               const message = `Faild: ${b} may not be empty.`;
               self.log(message);
