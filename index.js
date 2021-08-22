@@ -19,7 +19,8 @@ class Remover {
         options: {
           verbose: {
             usage: 'Increase verbosity',
-            shortcut: 'v'
+            shortcut: 'v',
+            type: 'boolean'
           }
         }
       }
