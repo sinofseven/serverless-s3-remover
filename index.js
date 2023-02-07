@@ -93,14 +93,14 @@ class Remover {
     };
 
     const populateConfig = () => {
-      return this.serverless.variables.populateObject(this.serverless.service.custom.remover)
-        .then(fileConfig => {
-          const defaultConfig = {
-            prompt: false,
-            buckets: [],
-          };
-          return Object.assign({}, defaultConfig, fileConfig);
-        });
+      return new Promise((resolve) => {
+        const config = {
+          prompt: false,
+          buckets: [],
+        };
+        const fileConfig = this.serverless.service.custom.remover  || {};
+        return resolve({ ...config, ...fileConfig});
+      });
     };
 
     return new Promise((resolve) => {
